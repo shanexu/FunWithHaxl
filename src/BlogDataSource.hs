@@ -23,8 +23,7 @@ import qualified Data.Map as Map
 import Control.Monad
 import Data.Maybe
 import Data.List
-import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text (Text, pack)
 import Haxl.Core
 import Database.SQLite.Simple
 import Database.SQLite.Simple.Internal
@@ -155,7 +154,7 @@ idList ids = "(" ++ intercalate "," (map show ids) ++ ")"
 sql :: forall r. FromRow r => RowParser r -> Connection -> String -> IO (Either String [r])
 sql parser db query = do
   putStrLn query
-  left show <$> (Control.Exception.try $ queryWith_ parser db (Query $ T.pack query) :: IO (Either SomeException [r]))
+  left show <$> (Control.Exception.try $ queryWith_ parser db (Query $ pack query) :: IO (Either SomeException [r]))
 
 newtype BlogDBException = BlogDBException String
   deriving (Show, Typeable)
