@@ -3,7 +3,8 @@
 module Main where
 
 import System.Environment
-import HaxlBlog
+import qualified HaxlBlog as H
+import qualified BlogDB as R
 
 defaultDB = "blog.sqlite"
 
@@ -16,4 +17,7 @@ main = do
       _ ->
         putStrLn ("using default \"" ++ defaultDB ++ "\"") >>
         return defaultDB
-  run path (getPostIds >>= mapM getPostContent) >>= print
+  putStrLn "raw:"
+  R.run path (R.getPostIds >>= mapM R.getPostContent) >>= print
+  putStrLn "haxl:"
+  H.run path (H.getPostIds >>= mapM H.getPostContent) >>= print

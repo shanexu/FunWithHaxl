@@ -1,8 +1,11 @@
-{-# LANGUAGE
-    StandaloneDeriving, GADTs, TypeFamilies,
-    FlexibleInstances, MultiParamTypeClasses,
-    OverloadedStrings, DeriveDataTypeable
- #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module BlogDataSource
   ( PostId, PostContent
@@ -25,7 +28,9 @@ import qualified Data.Text as T
 import Haxl.Core
 import Database.SQLite.Simple
 import Database.SQLite.Simple.Internal
+import qualified Control.Exception as E
 import Control.Exception
+import Control.Arrow (left)
 
 
 -- -----------------------------------------------------------------------------
@@ -39,7 +44,7 @@ type PostContent = String
 -- Request type
 
 data BlogRequest a where
-  FetchPosts       :: BlogRequest [PostId]
+  FetchPosts :: BlogRequest [PostId]
   FetchPostContent :: PostId -> BlogRequest PostContent
 
 deriving instance Show (BlogRequest a)
@@ -108,22 +113,23 @@ collect (BlockedFetch (FetchPostContent x) v) (as,bs) = (as,(x,v):bs)
 
 doFetch :: Connection -> Batches -> IO ()
 doFetch db (as,bs) = do
+  putStrLn "doFetch"
   sqlMultiFetch db as id
     "select postid from postinfo;"
     (fromRow :: RowParser [PostId])
-    id
-    (\_ ids -> Just . map head $ ids)
+    concat
+    (\_ ids -> Just ids)
 
   sqlMultiFetch db bs snd
     ("select postid,content from postcontent where postid in " ++
-       idList (map fst bs))
+       idList (map fst bs) ++ ";")
     (fromRow :: RowParser (PostId, PostContent))
     Map.fromList
     (\(x,_) -> Map.lookup x)
 
-
-sqlMultiFetch
-  :: FromRow y => Connection
+sqlMultiFetch ::
+  forall a x y z.
+  FromRow y => Connection
   -> [x]
   -> (x -> ResultVar a)
   -> String
@@ -131,40 +137,26 @@ sqlMultiFetch
   -> ([y] -> z)
   -> (x -> z -> Maybe a)
   -> IO ()
-
-sqlMultiFetch _  [] _ _ _ _ _ = return ()
-sqlMultiFetch db requests getvar query parserow collate extract = do
-  results <- sqlWith parserow db query
-  let fetched = collate results
-  forM_ requests $ \q ->
-    case extract q fetched of
-      Nothing -> putFailure (getvar q) (BlogDBException "missing result")
-      Just r -> putSuccess (getvar q) r
-
- --  case results of
- --    Left s -> failAll (BlogDBException s)
- --    Right [rows] -> do
- --      let fetched = collate (catMaybes (map parserow rows))
- --      forM_ requests $ \q ->
- --        case extract q fetched of
- --          Nothing -> putFailure (getvar q) (BlogDBException "missing result")
- --          Just r -> putSuccess (getvar q) r
- --    _other -> failAll (BlogDBException "invalid result")
- -- where
- --  failAll e = forM_ requests $ \q -> putFailure (getvar q) e
+sqlMultiFetch db requests getvar query parser collate extract = do
+  results <- sql parser db query :: IO (Either String [y])
+  case results of
+    Left s -> failAll (BlogDBException s)
+    Right rows -> do
+      let fetched = collate rows
+      forM_ requests $ \q ->
+        case extract q fetched of
+          Nothing -> putFailure (getvar q) (BlogDBException "missing result")
+          Just r -> putSuccess (getvar q) r
+  where
+    failAll e = forM_ requests $ \q -> putFailure (getvar q) e
 
 idList :: [PostId] -> String
 idList ids = "(" ++ intercalate "," (map show ids) ++ ")"
 
-sql :: FromRow r => Connection -> String -> IO [r]
-sql db query = do
+sql :: forall r. FromRow r => RowParser r -> Connection -> String -> IO (Either String [r])
+sql parser db query = do
   putStrLn query
-  query_ db (Query $ T.pack query)
-
-sqlWith :: RowParser r -> Connection -> String -> IO [r]
-sqlWith p db query = do
-  putStrLn query
-  queryWith_ p db (Query $ T.pack query)
+  left show <$> (E.try $ queryWith_ parser db (Query $ T.pack query) :: IO (Either SomeException [r]))
 
 newtype BlogDBException = BlogDBException String
   deriving (Show, Typeable)

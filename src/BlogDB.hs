@@ -43,7 +43,7 @@ sql ::
 sql query = do
   db <- ask
   liftIO $ do
-    print query
+    putStrLn $ T.unpack . fromQuery $ query
     left show <$> (try $ query_ db query :: IO (Either SomeException [r]))
 
 getPostIds = do
