@@ -28,7 +28,6 @@ import qualified Data.Text as T
 import Haxl.Core
 import Database.SQLite.Simple
 import Database.SQLite.Simple.Internal
-import qualified Control.Exception as E
 import Control.Exception
 import Control.Arrow (left)
 
@@ -113,7 +112,6 @@ collect (BlockedFetch (FetchPostContent x) v) (as,bs) = (as,(x,v):bs)
 
 doFetch :: Connection -> Batches -> IO ()
 doFetch db (as,bs) = do
-  putStrLn "doFetch"
   sqlMultiFetch db as id
     "select postid from postinfo;"
     (fromRow :: RowParser [PostId])
@@ -137,6 +135,7 @@ sqlMultiFetch ::
   -> ([y] -> z)
   -> (x -> z -> Maybe a)
   -> IO ()
+sqlMultiFetch _ [] _ _ _ _ _ = return ()
 sqlMultiFetch db requests getvar query parser collate extract = do
   results <- sql parser db query :: IO (Either String [y])
   case results of
@@ -156,7 +155,7 @@ idList ids = "(" ++ intercalate "," (map show ids) ++ ")"
 sql :: forall r. FromRow r => RowParser r -> Connection -> String -> IO (Either String [r])
 sql parser db query = do
   putStrLn query
-  left show <$> (E.try $ queryWith_ parser db (Query $ T.pack query) :: IO (Either SomeException [r]))
+  left show <$> (Control.Exception.try $ queryWith_ parser db (Query $ T.pack query) :: IO (Either SomeException [r]))
 
 newtype BlogDBException = BlogDBException String
   deriving (Show, Typeable)
