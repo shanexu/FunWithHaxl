@@ -72,8 +72,8 @@ getPostContent = dataFetch . FetchPostContent
 instance StateKey BlogRequest where
   data State BlogRequest = BlogDataState Connection
 
-initDataSource :: IO (State BlogRequest)
-initDataSource = BlogDataState <$> open "blog.sqlite"
+initDataSource :: String -> IO (State BlogRequest)
+initDataSource path = BlogDataState <$> open path
 
 instance DataSourceName BlogRequest where
   dataSourceName _ = "BlogDataSource"

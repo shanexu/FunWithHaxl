@@ -5,14 +5,18 @@ module Main where
 import Lib
 import Database.SQLite.Simple
 import Database.SQLite.Simple.Internal
+import System.Environment
+import HaxlBlog
+
+defaultDB = "blog.sqlite"
 
 main :: IO ()
 main = do
-  someFunc
-  conn <- connection
-  [[x]] <- queryWith_ (fromRow::RowParser [Int])  conn "select 2 + 2"
-  print x
-
-connection :: IO Connection
-connection = open "/tmp/user.db"
-
+  args <- getArgs
+  path <-
+    case args of
+      x:_ -> putStrLn ("using " ++ x) >> return x
+      _ ->
+        putStrLn ("using default \"" ++ defaultDB ++ "\"") >>
+        return defaultDB
+  run path (getPostIds >>= mapM getPostContent) >>= print

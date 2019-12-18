@@ -15,11 +15,10 @@ import Control.Exception
 
 type Blog a = ReaderT Connection IO a
 
-run :: Blog a -> IO a
-run m = do
-  db <- open "blog.sqlite"
+run :: String -> Blog a -> IO a
+run path m = do
+  db <- open path
   runReaderT m db
-
 
 -- -----------------------------------------------------------------------------
 -- An API
