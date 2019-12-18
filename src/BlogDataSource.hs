@@ -110,19 +110,24 @@ collect (BlockedFetch (FetchPostContent x) v) (as,bs) = (as,(x,v):bs)
 -- Fetch data for each batch
 
 doFetch :: Connection -> Batches -> IO ()
-doFetch db (as,bs) = do
-  sqlMultiFetch db as id
+doFetch db (as, bs) = do
+  sqlMultiFetch
+    db
+    as
+    id
     "select postid from postinfo;"
     (fromRow :: RowParser [PostId])
     concat
     (\_ ids -> Just ids)
-
-  sqlMultiFetch db bs snd
+  sqlMultiFetch
+    db
+    bs
+    snd
     ("select postid,content from postcontent where postid in " ++
-       idList (map fst bs) ++ ";")
+     idList (map fst bs) ++ ";")
     (fromRow :: RowParser (PostId, PostContent))
     Map.fromList
-    (\(x,_) -> Map.lookup x)
+    (\(x, _) -> Map.lookup x)
 
 sqlMultiFetch ::
   forall a x y z.
