@@ -2,9 +2,6 @@
 
 module Main where
 
-import Lib
-import Database.SQLite.Simple
-import Database.SQLite.Simple.Internal
 import System.Environment
 import HaxlBlog
 
