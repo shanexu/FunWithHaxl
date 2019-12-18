@@ -25,9 +25,15 @@ dependencies:
 - text
 - aeson
 - haxl
+- mtl
+- hashable
+- containers
 
 library:
   source-dirs: src
+  exposed-modules:
+    - Lib
+    - BlogDB
 
 executables:
   FunWithHaxl-exe:
