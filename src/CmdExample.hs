@@ -2,7 +2,6 @@ module CmdExample where
 
 import CmdDataSource
 import Haxl.Core
-import LogDataSource
 
 type Haxl a = GenHaxl () a
 
