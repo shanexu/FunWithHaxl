@@ -19,3 +19,8 @@ example = do
   a <- getPostContent 1
   b <- getPostContent 2
   return (a ++ b)
+
+loadCache :: GenHaxl u ()
+loadCache = do
+  cacheRequest (FetchPostContent 2) (Right ("example content 2"))
+  cacheRequest (FetchPostContent 1) (Right ("example content 1"))

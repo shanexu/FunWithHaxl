@@ -28,6 +28,9 @@ dependencies:
 - mtl
 - hashable
 - containers
+- time
+- async
+- process
 
 library:
   source-dirs: src
@@ -37,6 +40,8 @@ library:
     - HaxlBlog
     - BlogExample
     - BlogExampleCache
+    - LogDataSource
+    - LogExample
 
 executables:
   FunWithHaxl-exe:
