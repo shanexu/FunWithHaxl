@@ -17,9 +17,9 @@ import Control.Arrow (left)
 
 type Blog a = ReaderT Connection IO a
 
-run :: String -> Blog a -> IO a
-run path m = do
-  db <- open path
+run :: Blog a -> IO a
+run m = do
+  db <- open "blog.sqlite"
   runReaderT m db
 
 -- -----------------------------------------------------------------------------

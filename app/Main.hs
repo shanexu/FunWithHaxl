@@ -10,14 +10,7 @@ defaultDB = "blog.sqlite"
 
 main :: IO ()
 main = do
-  args <- getArgs
-  path <-
-    case args of
-      x:_ -> putStrLn ("using " ++ x) >> return x
-      _ ->
-        putStrLn ("using default \"" ++ defaultDB ++ "\"") >>
-        return defaultDB
   putStrLn "raw:"
-  R.run path (R.getPostIds >>= mapM R.getPostContent) >>= print
+  R.run (R.getPostIds >>= mapM R.getPostContent) >>= print
   putStrLn "haxl:"
-  H.run path (H.getPostIds >>= mapM H.getPostContent) >>= print
+  H.run (H.getPostIds >>= mapM H.getPostContent) >>= print

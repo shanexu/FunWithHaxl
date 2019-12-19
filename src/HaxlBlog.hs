@@ -17,8 +17,8 @@ import Haxl.Core
 
 type Haxl a = GenHaxl () a
 
-run :: String -> Haxl a -> IO a
-run path h = do
-  db <- initDataSource path
+run :: Haxl a -> IO a
+run h = do
+  db <- initDataSource
   env <- initEnv (stateSet db stateEmpty) ()
   runHaxl env h
