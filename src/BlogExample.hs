@@ -1,4 +1,9 @@
-module BlogExample where
+module BlogExample
+  ( example1
+  , example2
+  , example3
+  , example4
+  ) where
 
 import HaxlBlog
 import Haxl.Core

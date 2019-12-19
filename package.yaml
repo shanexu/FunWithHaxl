@@ -35,6 +35,8 @@ library:
     - Lib
     - BlogDB
     - HaxlBlog
+    - BlogExample
+    - BlogExampleCache
 
 executables:
   FunWithHaxl-exe:
