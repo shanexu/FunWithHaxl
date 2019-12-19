@@ -42,6 +42,8 @@ library:
     - BlogExampleCache
     - LogDataSource
     - LogExample
+    - CmdDataSource
+    - CmdExample
 
 executables:
   FunWithHaxl-exe:
